@@ -1,0 +1,230 @@
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+        <title>The Clones</title>
+        <meta name="author" content="Jacob Guglielmin">
+        <link href="css/bootstrap.css" rel="stylesheet">
+        <link href="css/icomoon.css" rel="stylesheet">
+		<link href="css/main.css" rel="stylesheet">
+    </head>
+    <!--    The Clones
+            Copyright (C) 2020 Jacob Guglielmin
+
+            This program is free software: you can redistribute it and/or modify
+            it under the terms of the GNU General Public License as published by
+            the Free Software Foundation, either version 3 of the License, or
+            (at your option) any later version.
+
+            This program is distributed in the hope that it will be useful,
+            but WITHOUT ANY WARRANTY; without even the implied warranty of
+            MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+            GNU General Public License for more details.
+
+            You should have received a copy of the GNU General Public License
+            along with this program (if you are reading this on the original
+            author's website, you can find a copy at
+            <jacobguglielmin.github.io/Games/license.txt>). If not, see
+            <http://www.gnu.org/licenses/>. -->
+	<body class="no-select">
+        <div id="page" class="hidden">
+            <div id="tooltip" class="hidden">
+                <p id="tooltipTitle"></p>
+                <hr>
+                <span id="tooltipInfo"></span>
+                <hr>
+                <span id="tooltipCost"></span>
+            </div>
+            <div id="header">
+                <!-- Settings buttons are displayed right to left on the right side of the window -->
+                <button id="save" class="settingsButton" onmousedown="save('localStorage')">Save</button>
+                <button id="export" class="settingsButton" onmousedown="tooltip('save')">Export</button>
+                <button id="import" class="settingsButton" onmousedown="tooltip('load')">Import</button>
+            </div>
+            <div id="home">
+                <div id="resourcesContainer">
+                    <table id="actionTable" class="buttonTable">
+                        <tbody>
+                            <tr id="actionContainer" class="hidden">
+                                <td>
+                                    <button id="actionButton" onmousedown="action(0)">Search the Room</button>
+                                </td>
+                                <td>
+                                    <div class="progressBarOuter resourceProgressBar">
+                                        <div id="actionProgressBar" class="progressBarInner resourceProgressBarInner" style="width:0%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table id="cloningTable" class="buttonTable">
+                        <tbody>
+                            <tr id="cloningContainer" class="hidden">
+                                <td>
+                                    <button id="cloneButton" onmousedown="makeClone()">Make a Clone</button>
+                                </td>
+                                <td>
+                                    <div class="progressBarOuter resourceProgressBar">
+                                        <div id="cloningProgressBar" class="progressBarInner resourceProgressBarInner" style="width:0%;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table id="resourcesTable" class="buttonTable">
+                        <tbody>
+                            <tr id="powerContainer" class="hidden">
+                                <td>
+                                    <button id="powerButton" onmousedown="incrementResource('power')">Generate Power</button>
+                                </td>
+                                <td>Power:</td>
+                                <td class="number">
+                                    <span id="powerTotal">0</span>
+                                </td>
+                                <td class="number">
+                                    Max:
+                                    <span id="powerMax">100</span>
+                                </td>
+                                <td id="powerNetContainer" class="number hidden">
+                                    <span id="powerNet">0.0</span>/s
+                                </td>
+                            </tr>
+                            <tr id="foodContainer" class="hidden">
+                                <td>
+                                    <button id="foodButton" onmousedown="incrementResource('food')">Gather Food</button>
+                                </td>
+                                <td>Food:</td>
+                                <td class="number">
+                                    <span id="foodTotal">0</span>
+                                </td>
+                                <td id="foodMaxContainer" class="number hidden">
+                                    Max:
+                                    <span id="foodMax">100</span>
+                                </td>
+                                <td id="foodNetContainer" class="number">
+                                    <span id="foodNet">0.0</span>/s
+                                </td>
+                            </tr>
+                            <tr id="metalContainer" class="hidden">
+                                <td>
+                                    <button id="metalButton" onmousedown="incrementResource('metal')">Disassemble a Machine</button>
+                                </td>
+                                <td>Scrap Metal:</td>
+                                <td class="number">
+                                    <span id="metalTotal">0</span>
+                                </td>
+                                <td id="metalMaxContainer" class="number hidden">
+                                    Max:
+                                    <span id="metalMax">100</span>
+                                </td>
+                                <td id="metalNetContainer" class="number hidden">
+                                    <span id="metalNet">0.0</span>/s
+                                </td>
+                            </tr>
+                            <tr id="scienceContainer" class="hidden">
+                                <td>
+                                    <button id="scienceButton" onmousedown="incrementResource('science')">Research</button>
+                                </td>
+                                <td>Science:</td>
+                                <td class="number">
+                                    <span id="scienceTotal">0</span>
+                                </td>
+                                <td class="number">
+                                    <span id="scienceNet">0.0</span>/s
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="battleContainer" class="hidden">
+                    <div id="healthBarContainer">
+                        <div id="armyContainer">
+                            <div id="armySize" class="battleTextRow">
+                                10 Clones
+                            </div>
+                            <div id="armyDamage" class="battleTextRow"></div>
+                            <div class="progressBarOuter battleProgressBar">
+                                <div id="armyHealthBar" class="progressBarInner battleProgressBarInner">
+                                    <span id="armyHealth" class="health"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="enemyContainer">
+                            <div id="enemyName" class="battleTextRow">
+                                Enemy
+                            </div>
+                            <div id="enemyDamage" class="battleTextRow"></div>
+                            <div class="progressBarOuter battleProgressBar">
+                                <div id="enemyHealthBar" class="progressBarInner battleProgressBarInner">
+                                    <span id="enemyHealth" class="health"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="battleContainerBottom">
+                        <div id="battleInfoContainer">
+                            <div id="zoneNumber">
+                                Zone 0
+                            </div>
+                            <button id="fightButton" class="battleButton" onmousedown="fight();">Fight</button>
+                            <button id="autofightButton" class="battleButton hidden" onmousedown="toggleAutoFight();">Autofight Off</button>
+                        </div>
+                        <table id="battleTable">
+                            <tbody id="battleGrid"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="story"></div>
+                <div id="purchaseContainer" class="hidden">
+                    <div id="purchaseTabs" class="tabs">
+                        <button id="buildingsButton" class="tabButton currentTab" onmousedown="switchTabs(0)">Fabrication</button>
+                        <button id="jobsButton" class="tabButton hidden" onmousedown="switchTabs(1)">Jobs</button>
+                        <button id="upgradesButton" class="tabButton hidden" onmousedown="switchTabs(2)">Research</button>
+                        <button id="equipmentButton" class="tabButton hidden" onmousedown="switchTabs(3)">Equipment</button>
+                    </div>
+                    <div id="purchaseButtonsContainer">
+                        <div id="buildings" class="purchaseWindow">
+                            <button id="generatorButton" class="purchase" onmouseover="tooltip('generator', event)" onmousemove="tooltip('generator', event)" onmouseout="tooltip('hide')" onmousedown="purchase('generator', 1)">Generator</button>
+                            <button id="spearButton" class="purchase hidden" onmouseover="tooltip('spear', event)" onmousemove="tooltip('spear', event)" onmouseout="tooltip('hide')" onmousedown="purchase('spear', 1)">Spear</button>
+                            <button id="explosiveButton" class="purchase hidden" onmouseover="tooltip('explosive', event)" onmousemove="tooltip('explosive', event)" onmouseout="tooltip('hide')" onmousedown="purchase('explosive', 1)">Explosive</button>
+                            <button id="crateButton" class="purchase hidden" onmouseover="tooltip('crate', event)" onmousemove="tooltip('crate', event)" onmouseout="tooltip('hide')" onmousedown="purchase('crate', 1)">Crate<br>0</button>
+                            <button id="shedButton" class="purchase hidden" onmouseover="tooltip('shed', event)" onmousemove="tooltip('shed', event)" onmouseout="tooltip('hide')" onmousedown="purchase('shed', 1)">Shed<br>0</button>
+                        </div>
+                        <div id="jobs" class="hidden purchaseWindow">
+                            <div id="totalClonesContainer">
+                                Total Clones:
+                                <span id="totalClones">0</span>
+                            </div>
+                            <div id="unemployedClonesContainer">
+                                Unemployed Clones:
+                                <span id="unemployedClones">0</span>
+                            </div>
+                            <button id="farmerButton" class="purchase hidden" onmouseover="tooltip('farmer', event)" onmousemove="tooltip('farmer', event)" onmouseout="tooltip('hide')" onmousedown="hire('farmer', 1)">Farmer<br>0</button>
+                            <button id="minerButton" class="purchase hidden" onmouseover="tooltip('miner', event)" onmousemove="tooltip('miner', event)" onmouseout="tooltip('hide')" onmousedown="hire('miner', 1)">Miner<br>0</button>
+                            <button id="researcherButton" class="purchase" onmouseover="tooltip('researcher', event)" onmousemove="tooltip('researcher', event)" onmouseout="tooltip('hide')" onmousedown="hire('researcher', 1)">Researcher<br>0</button>
+                            <button id="engineerButton" class="purchase hidden" onmouseover="tooltip('engineer', event)" onmousemove="tooltip('engineer', event)" onmouseout="tooltip('hide')" onmousedown="hire('engineer', 1)">engineer<br>0</button>
+                        </div>
+                        <div id="upgrades" class="hidden purchaseWindow">
+                            <button id="escapeButton" class="purchase" onmouseover="tooltip('escape', event)" onmousemove="tooltip('escape', event)" onmouseout="tooltip('hide')" onmousedown="purchase('escape')">Escape</button>
+                            <button id="plansButton" class="purchase hidden" onmouseover="tooltip('plans', event)" onmousemove="tooltip('plans', event)" onmouseout="tooltip('hide')" onmousedown="purchase('plans')">Plans</button>
+                            <button id="engineersButton" class="purchase hidden" onmouseover="tooltip('engineers', event)" onmousemove="tooltip('engineers', event)" onmouseout="tooltip('hide')" onmousedown="purchase('engineers')">Engineers</button>
+                            <button id="minersButton" class="purchase hidden" onmouseover="tooltip('miners', event)" onmousemove="tooltip('miners', event)" onmouseout="tooltip('hide')" onmousedown="purchase('miners')">Miners</button>
+                            <button id="scoutsButton" class="purchase hidden" onmouseover="tooltip('scouts', event)" onmousemove="tooltip('scouts', event)" onmouseout="tooltip('hide')" onmousedown="purchase('scouts')">Scouts</button>
+                            <button id="organizationButton" class="purchase" onmouseover="tooltip('organization', event)" onmousemove="tooltip('organization', event)" onmouseout="tooltip('hide')" onmousedown="purchase('organization')">Organization<br>0</button>
+                            <button id="speedfarmingButton" class="purchase hidden" onmouseover="tooltip('speedfarming', event)" onmousemove="tooltip('speedfarming', event)" onmouseout="tooltip('hide')" onmousedown="purchase('speedfarming')">Speedfarming<br>0</button>
+                            <button id="speedminingButton" class="purchase hidden" onmouseover="tooltip('speedmining', event)" onmousemove="tooltip('speedmining', event)" onmouseout="tooltip('hide')" onmousedown="purchase('speedmining')">Speedmining<br>0</button>
+                            <button id="speedscienceButton" class="purchase hidden" onmouseover="tooltip('speedscience', event)" onmousemove="tooltip('speedscience', event)" onmouseout="tooltip('hide')" onmousedown="purchase('speedscience')">Speedscience<br>0</button>
+                        </div>
+                        <div id="equipment" class="hidden purchaseWindow"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="js/lz-string.js"></script>
+        <script src="js/utils.js"></script>
+        <script src="js/tooltip.js"></script>
+        <script src="js/exploration.js"></script>
+        <script src="js/imp-exp.js"></script>
+        <script src="js/main.js"></script>
+	</body>
+</html>
