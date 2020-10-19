@@ -1,0 +1,143 @@
+body {
+    user-select: none;
+    font-family: sans-serif;
+}
+
+#page {
+    background: url(../img/shadedEdges.png),url(../img/blobsBg.jpg);
+    background-size:100% 200%,auto;
+    overflow: auto;
+    display:grid;
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
+    position: absolute;
+}
+
+a {
+	color:#09f;
+	position:relative;
+	top:0px;
+	transition:top 0.2s;
+}
+
+#title,#subtitle
+{
+	font-size:40px;
+	color:#fff;
+	text-shadow:2px 2px 4px #000;
+	font-weight:bold;
+    font-family:'Oswald',Tahoma,sans-serif;
+    margin:0;
+    text-align: center;
+}
+
+#title {
+    text-shadow:1px 1px 0px #96f,2px 2px 0px #639,4px 4px 4px #000;
+}
+
+#subtitle {
+    font-size: 15px;
+    opacity: 0.75;
+    margin: 0;
+}
+
+.blurb {
+    width: 100%;
+    height: 100px;
+    margin: 0;
+}
+
+.projectList {
+    display: grid;
+    grid-template: 100px 100px 100px 100px / 252px 252px;
+    gap: 13px 8px;
+}
+
+#credits {
+    color: #fff;
+    margin:5px;
+    font-size: 80%;
+}
+
+#mainBox {
+    display:grid;
+    grid-template: 50px 18px / 512px;
+    gap: 10px 10px;
+    margin: auto;
+    color:rgba(0,0,0,0.9);
+    text-align: center;
+}
+
+.block a {
+    text-shadow:1px 1px 0px rgba(0,0,0,0.1);
+}
+
+a:hover {
+    top:-2px;
+}
+
+.block {
+    max-width: 100%;
+    height: calc(80% + 12px);
+    padding:12px;
+    padding-bottom: 0;
+	border-radius:8px;
+	background:#fff;
+	box-shadow:4px 4px 4px 0px rgba(0,0,0,0.25),0px 0px 8px rgba(255,255,255,0.5) inset;
+    display: flex;
+    flex-wrap: wrap;
+	position:relative;
+	opacity:0.95;
+	transition:top 0.2s,box-shadow 0.2s,opacity 0.2s;
+	background-position:center;
+	text-decoration:none;
+    color:inherit;
+}
+
+a.block:hover
+{
+	z-index:100;
+	box-shadow:8px 8px 8px 4px rgba(0,0,0,0.25),0px 0px 16px rgba(255,255,255,1) inset;
+	opacity:1;
+}
+
+.projectList>.block>h3 {
+	background:rgba(0, 0, 0, 0.5);
+	margin:-12px;
+	margin-bottom:0px;
+	padding:6px 12px;
+	border-radius:8px 8px 0px 0px;
+	text-decoration:none;
+	color:#fff;
+	text-shadow:0px 0px 10px #000;
+}
+
+.projectList>.block>p {
+    color: #fff;
+	text-shadow:0px 0px 10px #000;
+}
+
+h3 {
+    margin:0;
+	text-decoration:underline;
+	font-weight:bold;
+    font-size:16px;
+    width: 100%;
+    height: min-content;
+}
+
+p {
+    padding:0;
+    margin:10px;
+}
+
+#pancake {
+    background: url(../img/pancake.jpg);
+    background-size: 100%;
+    background-repeat: no-repeat;
+    max-width:512px;
+    height:221px;
+    border-radius: 8px;
+}
