@@ -1,0 +1,24 @@
+body {
+    user-select: none;
+    background-color: #2a2a2a;
+}
+
+canvas {
+    position: absolute;
+}
+
+#backgroundCanvas {
+    z-index: 0;
+}
+
+#mainCanvas {
+    z-index: 1;
+}
+
+#draggingCanvas {
+    z-index: 2;
+}
+
+button {
+    float:right;
+}
