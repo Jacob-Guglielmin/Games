@@ -6,16 +6,22 @@ let canvas = document.getElementById("mainCanvas"),
     draggingRenderer = draggingCanvas.getContext("2d"),
     backgroundCanvas = document.getElementById("backgroundCanvas"),
     backgroundRenderer = backgroundCanvas.getContext("2d"),
+    buttonCanvas = document.getElementById("buttonCanvas"),
+    buttonRenderer = buttonCanvas.getContext("2d"),
 
     cellSize = 30,
 
     placedCells = [],
-    savedLayout = [],
     targetsRemaining = 1,
     currentLevel = 1,
 
+    savedLayout = [],
+    started = false,
+
     mapWidth,
     mapHeight,
+    canvasOffsetX,
+    canvasOffsetY,
 
     newCellId = 0,
 
@@ -42,6 +48,13 @@ const CELLS = {
     SLIDE: 140,
     TARGET: 160
 },
+    BUTTONS = {
+        PLAY: 0,
+        PAUSE: 60,
+        RESET: 120,
+        STEP: 180,
+        NEXT: 240
+    },
     LEVELS = {
         1: {
             width: 12,
@@ -53,8 +66,8 @@ const CELLS = {
                 y2: 5
             },
             placed: [
-                { x: 8, y: 3, type: CELLS.TARGET, rotation: 0 },
-                { x: 2, y: 2, type: CELLS.PUSHER, rotation: 1 }
+                Cell(2, 2, 1, "PUSHER"),
+                Cell(8, 3, 0, "TARGET")
             ],
             targets: 1
         },
@@ -68,12 +81,12 @@ const CELLS = {
                 y2: 5
             },
             placed: [
-                { x: 7, y: 3, type: CELLS.TARGET, rotation: 0 },
-                { x: 8, y: 3, type: CELLS.TARGET, rotation: 0 },
-                { x: 9, y: 3, type: CELLS.TARGET, rotation: 0 },
-                { x: 1, y: 5, type: CELLS.PUSHER, rotation: 1 },
-                { x: 4, y: 1, type: CELLS.PASSIVE, rotation: 1 },
-                { x: 2, y: 2, type: CELLS.PASSIVE, rotation: 1 },
+                Cell(7, 3, 0, "TARGET"),
+                Cell(8, 3, 0, "TARGET"),
+                Cell(9, 3, 0, "TARGET"),
+                Cell(1, 5, 1, "PUSHER"),
+                Cell(4, 1, 1, "PASSIVE"),
+                Cell(2, 2, 1, "PASSIVE"),
             ],
             targets: 3
         },
@@ -87,9 +100,9 @@ const CELLS = {
                 y2: 5
             },
             placed: [
-                { x: 8, y: 3, type: CELLS.TARGET, rotation: 0 },
-                { x: 2, y: 2, type: CELLS.PUSHER, rotation: 0 },
-                { x: 3, y: 4, type: CELLS.ROTATOR, rotation: 0 }
+                Cell(8, 3, 0, "TARGET"),
+                Cell(2, 2, 0, "PUSHER"),
+                Cell(3, 4, 0, "ROTATOR")
             ],
             targets: 1
         },
@@ -103,11 +116,11 @@ const CELLS = {
                 y2: 5
             },
             placed: [
-                { x: 7, y: 3, type: CELLS.TARGET, rotation: 0 },
-                { x: 8, y: 3, type: CELLS.TARGET, rotation: 0 },
-                { x: 9, y: 3, type: CELLS.TARGET, rotation: 0 },
-                { x: 2, y: 3, type: CELLS.GENERATOR, rotation: 1 },
-                { x: 4, y: 2, type: CELLS.PASSIVE, rotation: 1 }
+                Cell(7, 3, 0, "TARGET"),
+                Cell(8, 3, 0, "TARGET"),
+                Cell(9, 3, 0, "TARGET"),
+                Cell(2, 3, 1, "GENERATOR"),
+                Cell(4, 2, 1, "PASSIVE")
             ],
             targets: 3
         },
@@ -121,18 +134,35 @@ const CELLS = {
                 y2: 5
             },
             placed: [
-                { x: 2, y: 9, type: CELLS.PUSHER, rotation: 1 },
-                { x: 3, y: 9, type: CELLS.SLIDE, rotation: 1 },
-                { x: 7, y: 3, type: CELLS.PUSHER, rotation: 2 },
-                { x: 4, y: 2, type: CELLS.PUSHER, rotation: 2 },
-                { x: 2, y: 4, type: CELLS.PASSIVE, rotation: 0 },
-                { x: 6, y: 2, type: CELLS.PASSIVE, rotation: 0 },
-                { x: 18, y: 9, type: CELLS.TARGET, rotation: 0 },
-                { x: 19, y: 9, type: CELLS.TARGET, rotation: 0 },
+                Cell(2, 9, 1, "PUSHER"),
+                Cell(3, 9, 1, "SLIDE"),
+                Cell(7, 3, 2, "PUSHER"),
+                Cell(4, 2, 2, "PUSHER"),
+                Cell(2, 4, 0, "PASSIVE"),
+                Cell(6, 2, 0, "PASSIVE"),
+                Cell(18, 9, 0, "TARGET"),
+                Cell(19, 9, 0, "TARGET"),
             ],
             targets: 2
         },
         6: {
+            width: 17,
+            height: 5,
+            placeable: {
+                x1: 7,
+                y1: 1,
+                x2: 9,
+                y2: 3
+            },
+            placed: [
+                Cell(9, 2, 0, "ROTATOR"),
+                Cell(7, 3, 2, "GENERATOR"),
+                Cell(2, 2, 0, "TARGET"),
+                Cell(14, 2, 0, "TARGET")
+            ],
+            targets: 2
+        },
+        7: {
             width: 12,
             height: 17,
             placeable: {
@@ -148,16 +178,16 @@ const CELLS = {
                 y2: 11
             },
             placed: [
-                { x: 1, y: 1, type: CELLS.PUSHER, rotation: 1 },
-                { x: 3, y: 5, type: CELLS.SLIDE, rotation: 1 },
-                { x: 5, y: 4, type: CELLS.PUSHER, rotation: 2 },
-                { x: 4, y: 2, type: CELLS.PUSHER, rotation: 2 },
-                { x: 2, y: 3, type: CELLS.PASSIVE, rotation: 0 },
-                { x: 9, y: 14, type: CELLS.TARGET, rotation: 0 },
+                Cell(1, 1, 1, "PUSHER"),
+                Cell(3, 5, 1, "SLIDE"),
+                Cell(5, 4, 2, "PUSHER"),
+                Cell(4, 2, 2, "PUSHER"),
+                Cell(2, 3, 0, "PASSIVE"),
+                Cell(9, 14, 0, "TARGET"),
             ],
             targets: 1
         },
-        7: {
+        8: {
             width: 18,
             height: 13,
             placeable: {
@@ -173,22 +203,22 @@ const CELLS = {
                 y2: 6
             },
             placed: [
-                { x: 2, y: 9, type: CELLS.GENERATOR, rotation: 1 },
-                { x: 4, y: 11, type: CELLS.GENERATOR, rotation: 1 },
-                { x: 3, y: 8, type: CELLS.GENERATOR, rotation: 0 },
-                { x: 1, y: 11, type: CELLS.PASSIVE, rotation: 0 },
-                { x: 9, y: 1, type: CELLS.TARGET, rotation: 0 },
-                { x: 10, y: 1, type: CELLS.TARGET, rotation: 0 },
-                { x: 11, y: 1, type: CELLS.TARGET, rotation: 0 },
-                { x: 12, y: 1, type: CELLS.TARGET, rotation: 0 },
-                { x: 13, y: 1, type: CELLS.TARGET, rotation: 0 },
-                { x: 14, y: 1, type: CELLS.TARGET, rotation: 0 },
-                { x: 15, y: 1, type: CELLS.TARGET, rotation: 0 },
-                { x: 16, y: 1, type: CELLS.TARGET, rotation: 0 },
+                Cell(2, 9, 1, "GENERATOR"),
+                Cell(4, 11, 1, "GENERATOR"),
+                Cell(3, 8, 0, "GENERATOR"),
+                Cell(1, 11, 0, "PASSIVE"),
+                Cell(9, 1, 0, "TARGET"),
+                Cell(10, 1, 0, "TARGET"),
+                Cell(11, 1, 0, "TARGET"),
+                Cell(12, 1, 0, "TARGET"),
+                Cell(13, 1, 0, "TARGET"),
+                Cell(14, 1, 0, "TARGET"),
+                Cell(15, 1, 0, "TARGET"),
+                Cell(16, 1, 0, "TARGET"),
             ],
             targets: 8
         },
-        8: {
+        9: {
             width: 22,
             height: 14,
             placeable: {
@@ -198,25 +228,25 @@ const CELLS = {
                 y2: 5
             },
             placed: [
-                { x: 1, y: 3, type: CELLS.GENERATOR, rotation: 1 },
-                { x: 3, y: 5, type: CELLS.SLIDE, rotation: 0 },
-                { x: 6, y: 1, type: CELLS.PUSHER, rotation: 1 },
-                { x: 5, y: 4, type: CELLS.PUSHER, rotation: 1 },
-                { x: 5, y: 1, type: CELLS.PUSHER, rotation: 2 },
-                { x: 2, y: 9, type: CELLS.GENERATOR, rotation: 1 },
-                { x: 1, y: 9, type: CELLS.SLIDE, rotation: 0 },
-                { x: 3, y: 9, type: CELLS.SLIDE, rotation: 0 },
-                { x: 1, y: 8, type: CELLS.IMMOBILE, rotation: 0 },
-                { x: 2, y: 8, type: CELLS.IMMOBILE, rotation: 0 },
-                { x: 3, y: 8, type: CELLS.IMMOBILE, rotation: 0 },
-                { x: 12, y: 11, type: CELLS.TARGET, rotation: 0 },
-                { x: 13, y: 11, type: CELLS.TARGET, rotation: 0 },
-                { x: 14, y: 11, type: CELLS.TARGET, rotation: 0 },
-                { x: 15, y: 11, type: CELLS.TARGET, rotation: 0 },
-                { x: 16, y: 11, type: CELLS.TARGET, rotation: 0 },
-                { x: 17, y: 11, type: CELLS.TARGET, rotation: 0 },
-                { x: 18, y: 11, type: CELLS.TARGET, rotation: 0 },
-                { x: 19, y: 11, type: CELLS.TARGET, rotation: 0 },
+                Cell(1, 3, 1, "GENERATOR"),
+                Cell(3, 5, 0, "SLIDE"),
+                Cell(6, 1, 1, "PUSHER"),
+                Cell(5, 4, 1, "PUSHER"),
+                Cell(5, 1, 2, "PUSHER"),
+                Cell(2, 9, 1, "GENERATOR"),
+                Cell(1, 9, 0, "SLIDE"),
+                Cell(3, 9, 0, "SLIDE"),
+                Cell(1, 8, 0, "IMMOBILE"),
+                Cell(2, 8, 0, "IMMOBILE"),
+                Cell(3, 8, 0, "IMMOBILE"),
+                Cell(12, 11, 0, "TARGET"),
+                Cell(13, 11, 0, "TARGET"),
+                Cell(14, 11, 0, "TARGET"),
+                Cell(15, 11, 0, "TARGET"),
+                Cell(16, 11, 0, "TARGET"),
+                Cell(17, 11, 0, "TARGET"),
+                Cell(18, 11, 0, "TARGET"),
+                Cell(19, 11, 0, "TARGET")
             ],
             targets: 8
         },
@@ -230,8 +260,14 @@ const CELLS = {
                 y2: 13
             },
             placed: [
-                { x: 3, y: 1, type: CELLS.PUSHER, rotation: 1 },
-                { x: 2, y: 1, type: CELLS.PUSHER, rotation: 1 }
+                Cell(3, 1, 0, "ROTATOR"),
+                Cell(2, 1, 0, "ROTATOR"),
+                Cell(4, 1, 2, "GENERATOR"),
+                Cell(4, 2, 3, "GENERATOR"),
+                Cell(6, 1, 0, "GENERATOR"),
+                Cell(5, 2, 1, "GENERATOR"),
+                Cell(5, 1, 2, "GENERATOR"),
+                Cell(6, 2, 3, "GENERATOR")
             ],
             targets: 999
         }
@@ -244,10 +280,26 @@ function mod(n, m) {
     return ((n % m) + m) % m;
 }
 
+function Cell(xPos, yPos, startingRotation, cellType) {
+    return { x: xPos, y: yPos, rotation: startingRotation, type: CELLS[cellType] };
+}
+
 /**
  * Starts the game
  */
 function init() {
+    //Sets the canvas size
+    canvas.width = 840;
+    canvas.height = 690;
+    backgroundCanvas.width = canvas.width;
+    backgroundCanvas.height = canvas.height;
+    draggingCanvas.width = canvas.width;
+    draggingCanvas.height = canvas.height;
+    buttonCanvas.width = canvas.width;
+    buttonCanvas.height = canvas.height;
+    document.getElementById("background").style.width = (canvas.width + 20) + "px";
+    document.getElementById("background").style.height = (canvas.height + 20) + "px";
+
     newMap();
 }
 
@@ -256,6 +308,10 @@ function init() {
  */
 function step() {
     if (animationStart == undefined) {
+        if (!started) {
+            savedLayout = deepCopy(placedCells);
+            started = true;
+        }
         for (let cell of placedCells) {
             //Save current state
             if (cell) {
@@ -266,8 +322,8 @@ function step() {
             }
         }
         for (let cell of placedCells) {
-            //Don't process nonexistent cells, immobile cells, or cells that have just been made
-            if (cell && !cell.new && cell.type != CELLS.IMMOBILE) {
+            //Don't process nonexistent cells, immobile cells, targets, or cells that have just been made
+            if (cell && !cell.new && cell.type != CELLS.IMMOBILE && cell.type != CELLS.TARGET) {
 
                 //Check for rotation
                 for (let i = -1; i <= 1; i++) {
@@ -419,10 +475,7 @@ function step() {
         });
         //Check if we won
         if (targetsRemaining == 0) {
-            playing = false;
-            alert("You win!");
-            currentLevel++;
-            newMap();
+            drawButtons();
         }
         if (playing) {
             while (animationStart != undefined);
@@ -434,14 +487,17 @@ function step() {
 }
 
 /**
- * Starts the sim
+ * Toggles the sim
  */
-function play() {
+function playToggle() {
     if (!playing) {
-        savedLayout = deepCopy(placedCells);
         playing = true;
         step();
+    } else {
+        clearTimeout(nextStep);
+        playing = false;
     }
+    drawButtons();
 }
 
 /**
@@ -452,6 +508,8 @@ function reset() {
     animationStart = undefined;
     clearTimeout(nextStep);
     playing = false;
+    started = false;
+    drawButtons();
     if (savedLayout[0] !== undefined) {
         placedCells = deepCopy(savedLayout);
         drawMap();
@@ -517,22 +575,32 @@ function drawMap() {
  * Builds the map with the current level
  */
 function newMap() {
+    playing = false;
+    clearTimeout(nextStep);
+    cancelAnimationFrame(animation);
+    animationStart = undefined;
+
+    //Removes the cells
     placedCells = [];
     savedLayout = [];
-    //Sets the size of the map in cells
-    mapWidth = LEVELS[currentLevel].width;
-    mapHeight = LEVELS[currentLevel].height;
 
-    //Resizes the canvas to fit the map
-    canvas.width = mapWidth * cellSize;
-    canvas.height = mapHeight * cellSize;
-    backgroundCanvas.width = canvas.width;
-    backgroundCanvas.height = canvas.height;
-    draggingCanvas.width = canvas.width;
-    draggingCanvas.height = canvas.height;
+    started = false;
+
     if (LEVELS[currentLevel]) {
+        //Sets the size of the map in cells
+        mapWidth = LEVELS[currentLevel].width;
+        mapHeight = LEVELS[currentLevel].height;
+
+        //Moves the map to the center of the canvas
+        canvasOffsetY = (canvas.height - (mapHeight * cellSize)) / 2;
+        canvasOffsetX = (canvas.width - (mapWidth * cellSize)) / 2;
         drawBackground();
         createMap();
+        drawButtons();
+    } else {
+        clearCanvas(backgroundRenderer);
+        clearCanvas(renderer);
+        clearCanvas(buttonRenderer);
     }
 }
 
@@ -546,11 +614,15 @@ function newMap() {
  * @param canvasRenderer The renderer to use
  * 
  */
-function drawMapCell(x, y, spritePosition, rotation = 0, canvasRenderer, grid = true) {
+function drawMapCell(x, y, spritePosition, rotation = 0, canvasRenderer, grid = true, absolute = false) {
     if (spritePosition != CELLS.NO_CELL) {
         if (grid) {
             x *= cellSize;
             y *= cellSize;
+        }
+        if (!absolute) {
+            x += canvasOffsetX;
+            y += canvasOffsetY;
         }
         if (rotation == 0) {
             canvasRenderer.drawImage(document.getElementById("cells"), 0, spritePosition, 20, 20, x, y, cellSize, cellSize);
@@ -560,6 +632,27 @@ function drawMapCell(x, y, spritePosition, rotation = 0, canvasRenderer, grid = 
             canvasRenderer.drawImage(document.getElementById("cells"), 0, spritePosition, 20, 20, -Math.floor(cellSize / 2), -Math.floor(cellSize / 2), cellSize, cellSize);
             canvasRenderer.setTransform(1, 0, 0, 1, 0, 0);
         }
+    }
+}
+
+function drawButtons() {
+    //Clear the buttons
+    clearCanvas(buttonRenderer);
+
+    //Draw the play/pause button, and step button if paused
+    if (playing) {
+        buttonRenderer.drawImage(document.getElementById("buttons"), BUTTONS.PAUSE, 0, 60, 60, 0, canvas.height - 60, 60, 60);
+    } else {
+        buttonRenderer.drawImage(document.getElementById("buttons"), BUTTONS.STEP, 0, 60, 60, 0, canvas.height - 130, 60, 60);
+        buttonRenderer.drawImage(document.getElementById("buttons"), BUTTONS.PLAY, 0, 60, 60, 0, canvas.height - 60, 60, 60);
+    }
+
+    //Draw the reset button
+    buttonRenderer.drawImage(document.getElementById("buttons"), BUTTONS.RESET, 0, 60, 60, 70, canvas.height - 60, 60, 60);
+
+    //Draw the next button if the level is over
+    if (targetsRemaining == 0) {
+        buttonRenderer.drawImage(document.getElementById("buttons"), BUTTONS.NEXT, 0, 120, 60, canvas.width - 120, canvas.height - 60, 120, 60);
     }
 }
 
@@ -595,6 +688,7 @@ function getCell(x, y) {
  * Draws the background
  */
 function drawBackground() {
+    clearCanvas(backgroundRenderer);
     for (let i = 0; i < mapHeight; i++) {
         for (let o = 0; o < mapWidth; o++) {
             if (i >= LEVELS[currentLevel].placeable.y1 && i <= LEVELS[currentLevel].placeable.y2 && o >= LEVELS[currentLevel].placeable.x1 && o <= LEVELS[currentLevel].placeable.x2) {
@@ -674,9 +768,15 @@ function getMousePos(evt) {
 
 draggingCanvas.addEventListener('mousedown', function (evt) {
     mouseDown = true;
-    let mousePos = getMousePos(evt),
-        mapPos = { x: Math.floor(mousePos.x / cellSize), y: Math.floor(mousePos.y / cellSize) };
-    if (!playing && mapPos.x >= LEVELS[currentLevel].placeable.x1 && mapPos.y >= LEVELS[currentLevel].placeable.y1 && mapPos.x <= LEVELS[currentLevel].placeable.x2 && mapPos.y <= LEVELS[currentLevel].placeable.y2) {
+    let mousePos = getMousePos(evt);
+
+    mousePos.x -= canvasOffsetX;
+    mousePos.y -= canvasOffsetY;
+
+    let mapPos = { x: Math.floor(mousePos.x / cellSize), y: Math.floor(mousePos.y / cellSize) };
+
+    if (!started && mapPos.x >= LEVELS[currentLevel].placeable.x1 && mapPos.y >= LEVELS[currentLevel].placeable.y1 && mapPos.x <= LEVELS[currentLevel].placeable.x2 && mapPos.y <= LEVELS[currentLevel].placeable.y2) {
+        //Grab a cell
         cellHeld = getCell(mapPos.x, mapPos.y);
         if (cellHeld && placedCells[cellHeld] != null && placedCells[cellHeld].type != CELLS.IMMOBILE) {
             cellHeld = deepCopy(placedCells[cellHeld]);
@@ -689,14 +789,30 @@ draggingCanvas.addEventListener('mousedown', function (evt) {
         } else {
             cellHeld = null;
         }
+    } else if (mousePos.x + canvasOffsetX >= 0 && mousePos.y + canvasOffsetY >= (canvas.height - 60) && mousePos.x + canvasOffsetX <= 60 && mousePos.y + canvasOffsetY <= canvas.height) {
+        //Play/pause button
+        playToggle();
+    } else if (mousePos.x + canvasOffsetX >= 70 && mousePos.y + canvasOffsetY >= (canvas.height - 60) && mousePos.x + canvasOffsetX <= 130 && mousePos.y + canvasOffsetY <= canvas.height) {
+        //Reset button
+        reset();
+    } else if (!playing && mousePos.x + canvasOffsetX >= 0 && mousePos.y + canvasOffsetY >= (canvas.height - 130) && mousePos.x + canvasOffsetX <= 60 && mousePos.y + canvasOffsetY <= (canvas.height - 70)) {
+        //Step button
+        step();
+    } else if (targetsRemaining == 0 && mousePos.x + canvasOffsetX >= canvas.width - 120 && mousePos.y + canvasOffsetY >= canvas.height - 60 && mousePos.x + canvasOffsetX <= canvas.width && mousePos.y + canvasOffsetY <= canvas.height) {
+        currentLevel++;
+        newMap();
     }
 }, false);
 
 draggingCanvas.addEventListener('mouseup', function (evt) {
     mouseDown = false;
     if (cellHeld) {
-        let mousePos = getMousePos(evt),
-            mapPos = { x: Math.floor((mousePos.x - dragOffset.x + Math.floor(cellSize / 2)) / cellSize), y: Math.floor((mousePos.y - dragOffset.y + Math.floor(cellSize / 2)) / cellSize) };
+        let mousePos = getMousePos(evt);
+
+        mousePos.x -= canvasOffsetX;
+        mousePos.y -= canvasOffsetY;
+
+        let mapPos = { x: Math.floor((mousePos.x - dragOffset.x + Math.floor(cellSize / 2)) / cellSize), y: Math.floor((mousePos.y - dragOffset.y + Math.floor(cellSize / 2)) / cellSize) };
         if (mapPos.x >= LEVELS[currentLevel].placeable.x1 && mapPos.y >= LEVELS[currentLevel].placeable.y1 && mapPos.x <= LEVELS[currentLevel].placeable.x2 && mapPos.y <= LEVELS[currentLevel].placeable.y2 && !getCell(mapPos.x, mapPos.y)) {
             placedCells[cellHeld.id].x = mapPos.x;
             placedCells[cellHeld.id].y = mapPos.y;
@@ -711,6 +827,8 @@ draggingCanvas.addEventListener('mouseup', function (evt) {
 draggingCanvas.addEventListener('mousemove', function (evt) {
     if (mouseDown && cellHeld) {
         let mousePos = getMousePos(evt);
+        mousePos.x -= canvasOffsetX;
+        mousePos.y -= canvasOffsetY;
         clearCanvas(draggingRenderer);
         drawMapCell(mousePos.x - dragOffset.x, mousePos.y - dragOffset.y, cellHeld.type, cellHeld.rotation, draggingRenderer, false);
     }
@@ -769,7 +887,7 @@ function getChange(direction, rotation) {
  * Starts the game once the cells are loaded
  */
 let loadInterval = setInterval(() => {
-    if (imageLoaded) {
+    if (imagesLoaded >= images) {
         clearInterval(loadInterval);
         init();
     }

@@ -1,22 +1,33 @@
 body {
     user-select: none;
-    background-color: #2a2a2a;
+    background-color: #ffffff;
 }
 
 canvas {
     position: absolute;
 }
 
-#backgroundCanvas {
+#background {
+    background-color: #2a2a2a;
+    margin-top: -10px;
+    margin-left: -10px;
     z-index: 0;
 }
 
-#mainCanvas {
+#backgroundCanvas {
     z-index: 1;
 }
 
-#draggingCanvas {
+#mainCanvas {
     z-index: 2;
+}
+
+#buttonCanvas {
+    z-index: 3;
+}
+
+#draggingCanvas {
+    z-index: 4;
 }
 
 button {
