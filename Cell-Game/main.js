@@ -69,6 +69,7 @@ const CELLS = {
                 Cell(2, 2, 1, "PUSHER"),
                 Cell(8, 3, 0, "TARGET")
             ],
+            text: "The goal of this game is to create a system of cells\nthat will collide with the target.\n\nYou can move any cells within the lighter area by dragging them.\nWhen you're ready, click the play button.",
             targets: 1
         },
         2: {
@@ -88,6 +89,7 @@ const CELLS = {
                 Cell(4, 1, 1, "PASSIVE"),
                 Cell(2, 2, 1, "PASSIVE"),
             ],
+            text: "These new cells don't do anything, but they can be pushed by other cells.\nWhen a cell reaches a target, it is removed.",
             targets: 3
         },
         3: {
@@ -104,6 +106,7 @@ const CELLS = {
                 Cell(2, 2, 0, "PUSHER"),
                 Cell(3, 4, 0, "ROTATOR")
             ],
+            text: "This cell will rotate cells next to it clockwise. If something doesn't work, you can\nreset the cells to whatever you tried last with the reset button.",
             targets: 1
         },
         4: {
@@ -122,6 +125,7 @@ const CELLS = {
                 Cell(2, 3, 1, "GENERATOR"),
                 Cell(4, 2, 1, "PASSIVE")
             ],
+            text: "This cell will duplicate cells behind it to the space in front of it,\npushing any cells already there forward.",
             targets: 3
         },
         5: {
@@ -143,6 +147,7 @@ const CELLS = {
                 Cell(18, 9, 0, "TARGET"),
                 Cell(19, 9, 0, "TARGET"),
             ],
+            text: "The new cell can only be pushed in the direction its lines are facing.",
             targets: 2
         },
         6: {
@@ -248,6 +253,7 @@ const CELLS = {
                 Cell(18, 11, 0, "TARGET"),
                 Cell(19, 11, 0, "TARGET")
             ],
+            text: "This one is a tricky one. Make sure you get to\nthe targets before the wall stops you!",
             targets: 8
         },
         "testing": {
@@ -260,14 +266,11 @@ const CELLS = {
                 y2: 13
             },
             placed: [
-                Cell(3, 1, 0, "ROTATOR"),
+                Cell(3, 1, 0, "PASSIVE"),
                 Cell(2, 1, 0, "ROTATOR"),
-                Cell(4, 1, 2, "GENERATOR"),
+                Cell(4, 1, 2, "PUSHER"),
                 Cell(4, 2, 3, "GENERATOR"),
-                Cell(6, 1, 0, "GENERATOR"),
-                Cell(5, 2, 1, "GENERATOR"),
-                Cell(5, 1, 2, "GENERATOR"),
-                Cell(6, 2, 3, "GENERATOR")
+                Cell(4, 2, 0, "SLIDE"),
             ],
             targets: 999
         }
@@ -280,6 +283,13 @@ function mod(n, m) {
     return ((n % m) + m) % m;
 }
 
+/**
+ * 
+ * @param {number} xPos The zero-based x position of the cell
+ * @param {number} yPos The zero-based y position of the cell
+ * @param {number} startingRotation The rotation id for the cell to begin with
+ * @param {string} cellType The type of cell
+ */
 function Cell(xPos, yPos, startingRotation, cellType) {
     return { x: xPos, y: yPos, rotation: startingRotation, type: CELLS[cellType] };
 }
@@ -689,6 +699,8 @@ function getCell(x, y) {
  */
 function drawBackground() {
     clearCanvas(backgroundRenderer);
+
+    //Draw background
     for (let i = 0; i < mapHeight; i++) {
         for (let o = 0; o < mapWidth; o++) {
             if (i >= LEVELS[currentLevel].placeable.y1 && i <= LEVELS[currentLevel].placeable.y2 && o >= LEVELS[currentLevel].placeable.x1 && o <= LEVELS[currentLevel].placeable.x2) {
@@ -702,6 +714,18 @@ function drawBackground() {
                     drawMapCell(o, i, CELLS.EMPTY, 0, backgroundRenderer, true);
                 }
             }
+        }
+    }
+
+    //Draw text
+    let text = LEVELS[currentLevel].text;
+    if (text) {
+        text = text.split("\n");
+        backgroundRenderer.textAlign = "center";
+        backgroundRenderer.font = "24px pixelated";
+        backgroundRenderer.fillStyle = "#e5e5e5";
+        for (let i = 0; i < text.length; i++) {
+            backgroundRenderer.fillText(text[i], canvas.width / 2, ((canvasOffsetY / 2) - ((text.length - 1) * 14)) + (i * 28));
         }
     }
 }
@@ -887,7 +911,7 @@ function getChange(direction, rotation) {
  * Starts the game once the cells are loaded
  */
 let loadInterval = setInterval(() => {
-    if (imagesLoaded >= images) {
+    if (assetsLoaded >= assets) {
         clearInterval(loadInterval);
         init();
     }

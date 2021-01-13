@@ -33,3 +33,8 @@ canvas {
 button {
     float:right;
 }
+
+@font-face {
+    font-family: "pixelated";
+    src: url(pixelated.ttf);
+}
