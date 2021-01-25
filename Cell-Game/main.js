@@ -908,11 +908,6 @@ function getChange(direction, rotation) {
 }
 
 /**
- * Starts the game once the cells are loaded
+ * Starts the game once the assets are loaded
  */
-let loadInterval = setInterval(() => {
-    if (assetsLoaded >= assets) {
-        clearInterval(loadInterval);
-        init();
-    }
-}, 10);
+window.onload = init;
